@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  backend-for-frontend:
+    build: ./backend-for-frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - product-service
+      - cart-service
+      - order-service
+      - payment-service
+    networks:
+      - frontend-network
+      - backend-network
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "50051:50051"
+    depends_on:
+      - auth-db
+    networks:
+      - backend-network
+
+  auth-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: authdb
+    ports:
+      - "5432:5432"
+    networks:
+      - backend-network
+
+  product-service:
+    build: ./product-service
+    ports:
+      - "50052:50052"
+    depends_on:
+      - product-db
+    networks:
+      - backend-network
+
+  product-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: productdb
+    ports:
+      - "5433:5432"
+    networks:
+      - backend-network
+
+  cart-service:
+    build: ./cart-service
+    ports:
+      - "50053:50053"
+    depends_on:
+      - cart-db
+    networks:
+      - backend-network
+
+  cart-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cartdb
+    ports:
+      - "5434:5432"
+    networks:
+      - backend-network
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "50054:50054"
+    depends_on:
+      - order-db
+    networks:
+      - backend-network
+
+  order-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: orderdb
+    ports:
+      - "5435:5432"
+    networks:
+      - backend-network
+
+  payment-service:
+    build: ./payment-service
+    ports:
+      - "50055:50055"
+    depends_on:
+      - payment-db
+    networks:
+      - backend-network
+
+  payment-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: paymentdb
+    ports:
+      - "5436:5432"
+    networks:
+      - backend-network
+
+  proto-gen:
+    build: ./proto-gen
+    command: ["make"]
+    volumes:
+      - ./proto:/app/proto
+    networks:
+      - backend-network
+
+  test-db:
+    build: ./test-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: testdb
+    ports:
+      - "5437:5432"
+    networks:
+      - backend-network
+
+  migrations:
+    build: ./migrations
+    depends_on:
+      - auth-db
+      - product-db
+      - cart-db
+      - order-db
+      - payment-db
+    networks:
+      - backend-network
+
+networks:
+  frontend-network:
+  backend-network:
